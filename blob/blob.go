@@ -17,6 +17,10 @@ type Blob struct {
 	tag string
 }
 
+func (b Blob) Tag() string {
+	return b.tag
+}
+
 func (b Blob) Loc() [2]Point {
 	top, bottom := -1, -1
 	start, end := 1000000, -1000000
@@ -26,13 +30,19 @@ func (b Blob) Loc() [2]Point {
 		yse := sSplit(ltag, ":")
 		//
 		yStr := yse[0]
-		switch i {
-		case 0:
+		if len(taglns) == 1 {
 			top, _ = strconv.Atoi(yStr)
 			top--
-		case len(taglns) - 1:
-			bottom, _ = strconv.Atoi(yStr)
-			bottom++
+			bottom = top + 2
+		} else {
+			switch i {
+			case 0:
+				top, _ = strconv.Atoi(yStr)
+				top--
+			case len(taglns) - 1:
+				bottom, _ = strconv.Atoi(yStr)
+				bottom++
+			}
 		}
 		//
 		seStr := sSplit(sTrim(sTrim(yse[1], " "), "[]"), ",")
@@ -125,16 +135,16 @@ func blAdjacent(bl1, bl2 *blobline) (*blobline, bool) {
 }
 
 // blob line scan
-func scan(y int, line []byte) (lob []*blobline) {
+func scan(y int, line []byte, filter func(p byte) bool) (lob []*blobline) {
 	inBlob := false
 	bl := &blobline{y: y}
 	for i, p := range line {
-		if !inBlob && p == 0 {
+		if !inBlob && filter(p) {
 			inBlob = true
 			bl.start = i
 			bl.end = len(line)
 		}
-		if inBlob && p > 0 {
+		if inBlob && !filter(p) {
 			inBlob = false
 			bl.end = i
 			lob = append(lob, bl)
@@ -147,14 +157,14 @@ func scan(y int, line []byte) (lob []*blobline) {
 	return
 }
 
-func DetectBlob(width, height, step int, data []byte) []Blob {
+func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
 
 	mBlobsLine := make(map[int][]*blobline)
 
 	for y := 0; y < height; y++ {
 		yIdx := y * step
 		line := data[yIdx : yIdx+width]
-		mBlobsLine[y] = scan(y, line)
+		mBlobsLine[y] = scan(y, line, filter)
 
 		// for i := 0; i < width; i++ {
 		// 	idx := yIdx + i
