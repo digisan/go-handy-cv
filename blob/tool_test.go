@@ -1,6 +1,7 @@
 package blob
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -30,4 +31,19 @@ func TestParseIntPair(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTagSort(t *testing.T) {
+	str := `
+1: [1,2] [3,4]
+2: [1,4]
+3: [0,1] [2,3] [2,3]
+4: [0,1] [4,6] [2,3] [2,3]
+5: [0,3] [5,6] [0,3] [0,3]
+6: [2,3] [4,6] [2,3] [2,3]
+7: [2,5]
+9: [4,5]
+8: [4,5]
+8: [2,3]`
+	fmt.Println(tagsort(str))
 }

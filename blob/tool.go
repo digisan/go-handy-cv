@@ -12,6 +12,7 @@ var (
 	sTrimSuffix = strings.TrimSuffix
 	sIndex      = strings.Index
 	sJoin       = strings.Join
+	sContains   = strings.Contains
 )
 
 func PtInRect(pt Point, rect [2]Point) bool {

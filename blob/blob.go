@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -19,6 +20,43 @@ type Blob struct {
 	y   int
 	idx string
 	tag string
+}
+
+func tagsort(tag string) string {
+
+	tln := sSplit(tag, "\n")
+	tln = ts.FM(tln, func(i int, e string) bool { return sContains(e, ":") }, nil)
+	sort.Slice(tln, func(i, j int) bool {
+		iln, jln := tln[i], tln[j]
+		pi, pj := sIndex(iln, ":"), sIndex(jln, ":")
+		ni, _ := strconv.Atoi(iln[:pi])
+		nj, _ := strconv.Atoi(jln[:pj])
+		if ni != nj {
+			return ni < nj
+		} else {
+			pis, pjs := sIndex(iln, "["), sIndex(jln, "[")
+			pie, pje := sIndex(iln, ","), sIndex(jln, ",")
+			ni, _ := strconv.Atoi(iln[pis+1 : pie])
+			nj, _ := strconv.Atoi(jln[pjs+1 : pje])
+			return ni < nj
+		}
+	})
+
+	// combine
+	s := 0
+AGAIN:
+	for i := s; i < len(tln)-1; i++ {
+		p := sIndex(tln[i], ":")
+		pfx := tln[i][:p+1]
+		if strings.HasPrefix(tln[i+1], pfx) {
+			tln[i] += tln[i+1][p+1:]
+			tln = append(tln[:i+1], tln[i+2:]...)
+			s = i
+			goto AGAIN
+		}
+	}
+
+	return sJoin(tln, "\n")
 }
 
 func (b Blob) String() string {
@@ -245,7 +283,7 @@ func detectParts(width, height, step int, data []byte, filter func(p byte) bool)
 	blobs := []Blob{}
 	for y, writers := range mYWriters {
 		for idx, w := range writers {
-			blob := Blob{y: y, idx: fmt.Sprint(idx), tag: sTrimRight(w.String(), "\n")}
+			blob := Blob{y: y, idx: fmt.Sprint(idx), tag: tagsort(w.String())}
 			blobs = append(blobs, blob)
 		}
 	}
@@ -271,7 +309,20 @@ func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
 		}
 		if shared && i < len(tagrln1) && i < len(tagrln2) {
 			p := sIndex(tagrln2[i], ":") + 1
-			mergedTag = append(mergedTag, tagrln1[i]+tagrln2[i][p:])
+			pfx := tagrln1[i][:p+1]
+			head := tagrln1[i][p:]
+			tail := tagrln2[i][p:]
+			pairs := ts.MkSet(sSplit(head+tail, " ")...)
+			pairs = ts.FM(pairs, func(i int, e string) bool { return sContains(e, "[") }, nil)
+			sort.Slice(pairs, func(i, j int) bool {
+				pis, pjs := sIndex(pairs[i], "["), sIndex(pairs[j], "[")
+				pie, pje := sIndex(pairs[i], ","), sIndex(pairs[j], ",")
+				ni, _ := strconv.Atoi(pairs[i][pis+1 : pie])
+				nj, _ := strconv.Atoi(pairs[j][pjs+1 : pje])
+				return ni < nj
+			})
+			pairstr := sJoin(pairs, " ")
+			mergedTag = append(mergedTag, pfx+pairstr)
 			continue
 		}
 		if i < len(tagrln1) {
