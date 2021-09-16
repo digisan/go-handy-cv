@@ -1,9 +1,13 @@
 package blob
 
 import (
+	"crypto/md5"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/digisan/gotk/slice/ts"
 )
 
 type Point struct {
@@ -12,9 +16,24 @@ type Point struct {
 }
 
 type Blob struct {
-	Y   int
-	Idx int
+	y   int
+	idx string
 	tag string
+}
+
+func (b Blob) String() string {
+	sb := strings.Builder{}
+	sb.WriteString("\n------------------------------------\n")
+	sb.WriteString(fmt.Sprintf("ID: %s\n", b.ID()))
+	sb.WriteString(fmt.Sprintf("Y: %d Index: %s\n", b.y, b.idx))
+	sb.WriteString(b.Tag() + "\n")
+	sb.WriteString(fmt.Sprintf("location: %v\n", b.Loc()))
+	sb.WriteString(fmt.Sprintf("area: %d\n", b.Area()))
+	return sb.String()
+}
+
+func (b Blob) ID() string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(b.tag)))
 }
 
 func (b Blob) Tag() string {
@@ -22,61 +41,55 @@ func (b Blob) Tag() string {
 }
 
 func (b Blob) Loc() [2]Point {
-	top, bottom := -1, -1
-	start, end := 1000000, -1000000
 
-	taglns := sSplit(b.tag, "\n")
-	for i, ltag := range taglns {
-		yse := sSplit(ltag, ":")
-		//
-		yStr := yse[0]
-		if len(taglns) == 1 {
-			top, _ = strconv.Atoi(yStr)
-			top--
-			bottom = top + 2
-		} else {
-			switch i {
-			case 0:
-				top, _ = strconv.Atoi(yStr)
-				top--
-			case len(taglns) - 1:
-				bottom, _ = strconv.Atoi(yStr)
-				bottom++
-			}
+	top, bottom := 8192, 0
+	left, right := 8192, 0
+
+	r := regexp.MustCompile(`\d+:`)
+	ns := r.FindAllString(b.tag, -1)
+	for _, n := range ns {
+		n = sTrimSuffix(n, ":")
+		num, _ := strconv.Atoi(n)
+		if num < top {
+			top = num
 		}
-		//
-		seStr := sSplit(sTrim(sTrim(yse[1], " "), "[]"), ",")
-		sStr, eStr := seStr[0], seStr[1]
-		if s, _ := strconv.Atoi(sStr); s < start {
-			start = s - 1
-		}
-		if e, _ := strconv.Atoi(eStr); e > end {
-			end = e
+		if num > bottom {
+			bottom = num
 		}
 	}
-	return [2]Point{{start, top}, {end, bottom}}
+
+	r = regexp.MustCompile(`\[\d+,\d+\]`)
+	ns = r.FindAllString(b.tag, -1)
+	for _, n := range ns {
+		pair := ParseIntPair(n)
+		if pair[0] < left {
+			left = pair[0]
+		}
+		if pair[1] > right {
+			right = pair[1] - 1
+		}
+	}
+
+	return [2]Point{{left, top}, {right, bottom}}
 }
 
 func (b Blob) Area() (area int) {
-	taglns := sSplit(b.tag, "\n")
-	for _, ltag := range taglns {
-		yse := sSplit(ltag, ":")
-		seStr := sSplit(sTrim(sTrim(yse[1], " "), "[]"), ",")
-		sStr, eStr := seStr[0], seStr[1]
-		s, _ := strconv.Atoi(sStr)
-		e, _ := strconv.Atoi(eStr)
-		area += (e - s)
+	r := regexp.MustCompile(`\[\d+,\d+\]`)
+	ns := r.FindAllString(b.tag, -1)
+	for _, n := range ns {
+		pair := ParseIntPair(n)
+		area += (pair[1] - pair[0])
 	}
 	return area
 }
 
-func MkSet(blobs ...Blob) (rtBlobs []Blob) {
+func mkSet(blobs ...Blob) (rt []Blob) {
 	m := make(map[string]Blob)
 	for _, blob := range blobs {
 		m[blob.tag] = blob
 	}
 	for _, blob := range m {
-		rtBlobs = append(rtBlobs, blob)
+		rt = append(rt, blob)
 	}
 	return
 }
@@ -157,7 +170,7 @@ func scan(y int, line []byte, filter func(p byte) bool) (lob []*blobline) {
 	return
 }
 
-func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
+func detectParts(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
 
 	mBlobsLine := make(map[int][]*blobline)
 
@@ -219,7 +232,7 @@ func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) 
 		sb.WriteString(fmt.Sprintln(blob))
 	}
 
-	keys, values = Map2KVs4Blob(mYBlobs, func(i, j int) bool { return i < j })
+	keys, values = Map2KVs4BL(mYBlobs, func(i, j int) bool { return i < j })
 	for i, y := range keys {
 		blobs := values[i]
 		for _, blob := range blobs {
@@ -232,9 +245,110 @@ func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) 
 	blobs := []Blob{}
 	for y, writers := range mYWriters {
 		for idx, w := range writers {
-			blob := Blob{Y: y, Idx: idx, tag: sTrimRight(w.String(), "\n")}
+			blob := Blob{y: y, idx: fmt.Sprint(idx), tag: sTrimRight(w.String(), "\n")}
 			blobs = append(blobs, blob)
 		}
 	}
-	return MkSet(blobs...) // remove duplicated blob
+	return mkSet(blobs...) // remove duplicated blob
+}
+
+func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
+	tagrln1 := ts.Reverse(sSplit(be1.tag, "\n"))
+	tagrln2 := ts.Reverse(sSplit(be2.tag, "\n"))
+	mergedTag := []string{}
+	i := -1
+	for {
+		i++
+		if i < len(tagrln1) && i < len(tagrln2) {
+			if tagrln1[i] == tagrln2[i] {
+				mergedTag = append(mergedTag, tagrln1[i])
+				shared = true
+				continue
+			}
+		}
+		if !shared {
+			return Blob{}, false
+		}
+		if shared && i < len(tagrln1) && i < len(tagrln2) {
+			p := sIndex(tagrln2[i], ":") + 1
+			mergedTag = append(mergedTag, tagrln1[i]+tagrln2[i][p:])
+			continue
+		}
+		if i < len(tagrln1) {
+			mergedTag = append(mergedTag, tagrln1[i])
+			continue
+		}
+		if i < len(tagrln2) {
+			mergedTag = append(mergedTag, tagrln2[i])
+			continue
+		}
+		break
+	}
+	mergedTag = ts.Reverse(mergedTag)
+	tag := sJoin(mergedTag, "\n")
+	y, err := strconv.Atoi(tag[:sIndex(tag, ":")])
+	if err != nil {
+		panic(err)
+	}
+	return Blob{y: y, tag: tag, idx: "merged"}, shared
+}
+
+func mergeToOneBlob(blobs ...Blob) Blob {
+	b := blobs[0]
+	for i := 1; i < len(blobs); i++ {
+		b, _ = merge2Blob(b, blobs[i])
+	}
+	return b
+}
+
+func blobEGrp(blobs []Blob, ids ...string) (ret []Blob) {
+	for _, b := range blobs {
+		if ts.In(b.ID(), ids...) {
+			ret = append(ret, b)
+		}
+	}
+	return
+}
+
+func combine(blobs ...Blob) (ret []Blob) {
+
+	merged := make(map[string]struct{})
+	m := make(map[string][]string)
+	for _, be1 := range blobs {
+		linked := false
+		id1 := be1.ID()
+		if _, ok := merged[id1]; ok {
+			continue
+		}
+		for _, be2 := range blobs {
+			id2 := be2.ID()
+			if _, ok := merged[id2]; ok {
+				continue
+			}
+			if id1 == id2 {
+				continue
+			}
+			if _, ok := merge2Blob(be1, be2); ok {
+				m[id1] = append(m[id1], id2)
+				merged[id1] = struct{}{}
+				merged[id2] = struct{}{}
+				linked = true
+			}
+		}
+		if !linked {
+			ret = append(ret, be1)
+		}
+	}
+
+	for hID, tIDs := range m {
+		ids := append([]string{hID}, tIDs...)
+		toMerge := blobEGrp(blobs, ids...)
+		ret = append(ret, mergeToOneBlob(toMerge...))
+	}
+
+	return
+}
+
+func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
+	return combine(detectParts(width, height, step, data, filter)...)
 }

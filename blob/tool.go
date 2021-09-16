@@ -1,15 +1,61 @@
 package blob
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
 
 var (
-	sTrim      = strings.Trim
-	sTrimRight = strings.TrimRight
-	sSplit     = strings.Split
+	sTrimRight  = strings.TrimRight
+	sSplit      = strings.Split
+	sTrimSuffix = strings.TrimSuffix
+	sIndex      = strings.Index
+	sJoin       = strings.Join
 )
+
+func PtInRect(pt Point, rect [2]Point) bool {
+	lefttop := rect[0]
+	rightbottom := rect[1]
+	return (pt.X > lefttop.X && pt.X < rightbottom.X) && (pt.Y > lefttop.Y && pt.Y < rightbottom.Y)
+}
+
+func Crossed(rect1, rect2 [2]Point) bool {
+	lefttop1 := rect1[0]
+	rightbottom1 := rect1[1]
+	lefttop2 := rect2[0]
+	rightbottom2 := rect2[1]
+	if (lefttop1.X >= lefttop2.X && lefttop1.X <= rightbottom2.X) &&
+		(rightbottom1.X >= lefttop2.X && rightbottom1.X <= rightbottom2.X) &&
+		(lefttop1.Y <= lefttop2.Y && rightbottom1.Y >= rightbottom2.Y) {
+		return true
+	}
+	return false
+}
+
+func RectOverlap(rect1, rect2 [2]Point) bool {
+	for i, rect := range [][2]Point{rect1, rect2} {
+		compare := rect2
+		if i == 1 {
+			compare = rect1
+		}
+
+		if Crossed(rect, compare) {
+			return true
+		}
+
+		lefttop := rect[0]
+		rightbottom := rect[1]
+		leftbottom := Point{lefttop.X, rightbottom.Y}
+		righttop := Point{rightbottom.X, lefttop.Y}
+		for _, pt := range []Point{lefttop, rightbottom, leftbottom, righttop} {
+			if PtInRect(pt, compare) {
+				return true
+			}
+		}
+	}
+	return false
+}
 
 func Map2KVs4BL(m map[int][]*blobline, less4key func(i int, j int) bool) (keys []int, values [][]*blobline) {
 
@@ -44,35 +90,7 @@ func Map2KVs4BL(m map[int][]*blobline, less4key func(i int, j int) bool) (keys [
 	return
 }
 
-func Map2KVs4Blob(m map[int][]*blobline, less4key func(i int, j int) bool) (keys []int, values [][]*blobline) {
-
-	if m == nil {
-		return nil, nil
-	}
-	if len(m) == 0 {
-		return []int{}, [][]*blobline{}
-	}
-
-	type kv struct {
-		key   int
-		value []*blobline
-	}
-
-	kvSlc := []kv{}
-	for k, v := range m {
-		kvSlc = append(kvSlc, kv{key: k, value: v})
-	}
-
-	switch {
-	case less4key != nil:
-		sort.SliceStable(kvSlc, func(i, j int) bool { return less4key(kvSlc[i].key, kvSlc[j].key) })
-	default:
-		// do not sort
-	}
-
-	for _, kvEle := range kvSlc {
-		keys = append(keys, kvEle.key)
-		values = append(values, kvEle.value)
-	}
+func ParseIntPair(pair string) (data [2]int) {
+	fmt.Sscanf(pair, "[%d,%d]", &data[0], &data[1])
 	return
 }
