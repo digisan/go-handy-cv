@@ -11,8 +11,10 @@ var (
 	sSplit      = strings.Split
 	sTrimSuffix = strings.TrimSuffix
 	sIndex      = strings.Index
+	sLastIndex  = strings.LastIndex
 	sJoin       = strings.Join
 	sContains   = strings.Contains
+	sHasPrefix  = strings.HasPrefix
 )
 
 func PtInRect(pt Point, rect [2]Point) bool {

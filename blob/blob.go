@@ -3,11 +3,13 @@ package blob
 import (
 	"crypto/md5"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/digisan/gotk/slice/ti"
 	"github.com/digisan/gotk/slice/ts"
 )
 
@@ -310,58 +312,137 @@ func detectParts(width, height, step int, data []byte, filter func(p byte) bool)
 	return mkSet(blobs...) // remove duplicated blob
 }
 
-func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
-	tagrln1 := ts.Reverse(sSplit(be1.tag, "\n"))
-	tagrln2 := ts.Reverse(sSplit(be2.tag, "\n"))
-	mergedTag := []string{}
-	i := -1
-	for {
-		i++
-		if i < len(tagrln1) && i < len(tagrln2) {
-			if tagrln1[i] == tagrln2[i] {
-				mergedTag = append(mergedTag, tagrln1[i])
-				shared = true
-				continue
+func getY(tag string) int {
+	if p := sIndex(tag, ":"); p >= 0 {
+		ns := tag[:p]
+		n, err := strconv.Atoi(ns)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return n
+	}
+	return -1
+}
+
+func getPairsByY(tag string, y int) string {
+	for _, ln := range sSplit(tag, "\n") {
+		pfx := fmt.Sprintf("%d: ", y)
+		if sHasPrefix(ln, pfx) {
+			return ln[len(pfx):]
+		}
+	}
+	return ""
+}
+
+func pairlink(pair1, pair2 string) bool {
+	pa1 := sSplit(pair1, " ")
+	pa2 := sSplit(pair2, " ")
+	for _, p1 := range pa1 {
+		for _, p2 := range pa2 {
+			if p1 == p2 {
+				return true
 			}
 		}
+	}
+	return false
+}
+
+func pairmerge(pair1, pair2 string) string {
+	if pair1 == pair2 {
+		return pair1
+	}
+	pair12 := pair1 + " " + pair2
+	pair12 = sTrimRight(pair12, " ")
+	pairs := sSplit(pair12, " ")
+	pairs = ts.MkSet(pairs...)
+	if len(pairs) >= 2 && pairs[0] != "" && pairs[1] != "" {
+		sort.Slice(pairs, func(i, j int) bool {
+			pis, pjs := sIndex(pairs[i], "["), sIndex(pairs[j], "[")
+			pie, pje := sIndex(pairs[i], ","), sIndex(pairs[j], ",")
+			ni, _ := strconv.Atoi(pairs[i][pis+1 : pie])
+			nj, _ := strconv.Atoi(pairs[j][pjs+1 : pje])
+			return ni < nj
+		})
+		return sJoin(pairs, " ")
+	}
+	if pairs[0] != "" {
+		return pairs[0]
+	}
+	return pairs[1]
+}
+
+func getMaxMinY(tag string) (Ymin, Ymax int) {
+	Ymin, Ymax = -1, -1
+
+	if p := sIndex(tag, ":"); p >= 0 {
+		ns := tag[:p]
+		n, err := strconv.Atoi(ns)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		Ymin = n
+	}
+
+	if p := sLastIndex(tag, ":"); p >= 0 {
+		temp := tag[:p]
+		if p1 := sLastIndex(temp, "\n"); p >= 0 {
+			ns := temp[p1+1:]
+			n, err := strconv.Atoi(ns)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			Ymax = n
+		}
+	}
+
+	switch {
+	case Ymin >= 0 && Ymax >= 0:
+		if Ymin > Ymax {
+			Ymin, Ymax = Ymax, Ymin
+		}
+	case Ymin >= 0 && Ymax == -1:
+		Ymax = Ymin
+	case Ymax >= 0 && Ymin == -1:
+		Ymin = Ymax
+	}
+
+	return
+}
+
+func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
+
+	minY1, maxY1 := getMaxMinY(be1.tag)
+	minY2, maxY2 := getMaxMinY(be2.tag)
+	fmt.Println(minY1, maxY1)
+	fmt.Println(minY2, maxY2)
+
+	pairsarr1, pairsarr2 := []string{}, []string{}
+	ys := []int{}
+
+	minY, maxY := ti.Min(minY1, minY2), ti.Max(maxY1, maxY2)
+	for y := minY; y <= maxY; y++ {
+		pairs1 := getPairsByY(be1.tag, y)
+		pairsarr1 = append(pairsarr1, pairs1)
+		pairs2 := getPairsByY(be2.tag, y)
+		pairsarr2 = append(pairsarr2, pairs2)
+		ys = append(ys, y)
 		if !shared {
-			return Blob{}, false
+			shared = pairlink(pairs1, pairs2)
 		}
-		if shared && i < len(tagrln1) && i < len(tagrln2) {
-			p := sIndex(tagrln2[i], ":") + 1
-			pfx := tagrln1[i][:p+1]
-			head := tagrln1[i][p:]
-			tail := tagrln2[i][p:]
-			pairs := ts.MkSet(sSplit(head+tail, " ")...)
-			pairs = ts.FM(pairs, func(i int, e string) bool { return sContains(e, "[") }, nil)
-			sort.Slice(pairs, func(i, j int) bool {
-				pis, pjs := sIndex(pairs[i], "["), sIndex(pairs[j], "[")
-				pie, pje := sIndex(pairs[i], ","), sIndex(pairs[j], ",")
-				ni, _ := strconv.Atoi(pairs[i][pis+1 : pie])
-				nj, _ := strconv.Atoi(pairs[j][pjs+1 : pje])
-				return ni < nj
-			})
-			pairstr := sJoin(pairs, " ")
-			mergedTag = append(mergedTag, pfx+pairstr)
-			continue
-		}
-		if i < len(tagrln1) {
-			mergedTag = append(mergedTag, tagrln1[i])
-			continue
-		}
-		if i < len(tagrln2) {
-			mergedTag = append(mergedTag, tagrln2[i])
-			continue
-		}
-		break
 	}
-	mergedTag = ts.Reverse(mergedTag)
+
+	mergedTag := []string{}
+
+	if shared {
+		for i := 0; i < len(ys); i++ {
+			p1, p2 := pairsarr1[i], pairsarr2[i]
+			pair := pairmerge(p1, p2)
+			mergedTag = append(mergedTag, fmt.Sprintf("%d: %s", ys[i], pair))
+		}
+	}
+
 	tag := sJoin(mergedTag, "\n")
-	y, err := strconv.Atoi(tag[:sIndex(tag, ":")])
-	if err != nil {
-		panic(err)
-	}
-	return Blob{y: y, tag: tagsort(tag), idx: "merged"}, shared
+	return Blob{y: getY(tag), tag: tagsort(tag), idx: "merged"}, shared
 }
 
 func mergeToOneBlob(blobs ...Blob) Blob {
