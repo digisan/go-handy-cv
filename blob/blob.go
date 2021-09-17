@@ -26,21 +26,23 @@ func tagsort(tag string) string {
 
 	tln := sSplit(tag, "\n")
 	tln = ts.FM(tln, func(i int, e string) bool { return sContains(e, ":") }, nil)
-	sort.Slice(tln, func(i, j int) bool {
-		iln, jln := tln[i], tln[j]
-		pi, pj := sIndex(iln, ":"), sIndex(jln, ":")
-		ni, _ := strconv.Atoi(iln[:pi])
-		nj, _ := strconv.Atoi(jln[:pj])
-		if ni != nj {
-			return ni < nj
-		} else {
-			pis, pjs := sIndex(iln, "["), sIndex(jln, "[")
-			pie, pje := sIndex(iln, ","), sIndex(jln, ",")
-			ni, _ := strconv.Atoi(iln[pis+1 : pie])
-			nj, _ := strconv.Atoi(jln[pjs+1 : pje])
-			return ni < nj
-		}
-	})
+	if len(tln) > 1 {
+		sort.Slice(tln, func(i, j int) bool {
+			iln, jln := tln[i], tln[j]
+			pi, pj := sIndex(iln, ":"), sIndex(jln, ":")
+			ni, _ := strconv.Atoi(iln[:pi])
+			nj, _ := strconv.Atoi(jln[:pj])
+			if ni != nj {
+				return ni < nj
+			} else {
+				pis, pjs := sIndex(iln, "["), sIndex(jln, "[")
+				pie, pje := sIndex(iln, ","), sIndex(jln, ",")
+				ni, _ := strconv.Atoi(iln[pis+1 : pie])
+				nj, _ := strconv.Atoi(jln[pjs+1 : pje])
+				return ni < nj
+			}
+		})
+	}
 
 	// combine
 	s := 0
@@ -54,6 +56,24 @@ AGAIN:
 			s = i
 			goto AGAIN
 		}
+	}
+
+	for i := 0; i < len(tln); i++ {
+		p := sIndex(tln[i], ":") + 2
+		pfx := tln[i][:p]
+		pairs := sSplit(tln[i][p:], " ")
+		pairs = ts.MkSet(pairs...)
+		if len(pairs) > 1 {
+			sort.Slice(pairs, func(i, j int) bool {
+				pi, pj := pairs[i], pairs[j]
+				pis, pjs := sIndex(pi, "["), sIndex(pj, "[")
+				pie, pje := sIndex(pi, ","), sIndex(pj, ",")
+				ni, _ := strconv.Atoi(pi[pis+1 : pie])
+				nj, _ := strconv.Atoi(pj[pjs+1 : pje])
+				return ni < nj
+			})
+		}
+		tln[i] = pfx + sJoin(pairs, " ")
 	}
 
 	return sJoin(tln, "\n")
@@ -341,7 +361,7 @@ func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
 	if err != nil {
 		panic(err)
 	}
-	return Blob{y: y, tag: tag, idx: "merged"}, shared
+	return Blob{y: y, tag: tagsort(tag), idx: "merged"}, shared
 }
 
 func mergeToOneBlob(blobs ...Blob) Blob {
