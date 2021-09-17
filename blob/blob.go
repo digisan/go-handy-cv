@@ -335,6 +335,9 @@ func getPairsByY(tag string, y int) string {
 }
 
 func pairlink(pair1, pair2 string) bool {
+	if pair1 == "" || pair2 == "" {
+		return false
+	}
 	pa1 := sSplit(pair1, " ")
 	pa2 := sSplit(pair2, " ")
 	for _, p1 := range pa1 {
