@@ -416,9 +416,7 @@ func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
 
 	minY1, maxY1 := getMaxMinY(be1.tag)
 	minY2, maxY2 := getMaxMinY(be2.tag)
-	fmt.Println(minY1, maxY1)
-	fmt.Println(minY2, maxY2)
-
+	
 	pairsarr1, pairsarr2 := []string{}, []string{}
 	ys := []int{}
 
@@ -483,11 +481,14 @@ func combine(blobs ...Blob) (ret []Blob) {
 			if id1 == id2 {
 				continue
 			}
-			if _, ok := merge2Blob(be1, be2); ok {
-				m[id1] = append(m[id1], id2)
-				merged[id1] = struct{}{}
-				merged[id2] = struct{}{}
-				linked = true
+
+			if RectOverlap(be1.Loc(), be2.Loc()) {
+				if _, ok := merge2Blob(be1, be2); ok {
+					m[id1] = append(m[id1], id2)
+					merged[id1] = struct{}{}
+					merged[id2] = struct{}{}
+					linked = true
+				}
 			}
 		}
 		if !linked {
@@ -505,5 +506,9 @@ func combine(blobs ...Blob) (ret []Blob) {
 }
 
 func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
-	return combine(detectParts(width, height, step, data, filter)...)
+	blobs := detectParts(width, height, step, data, filter)
+	sort.Slice(blobs, func(i, j int) bool {
+		return blobs[i].y < blobs[j].y
+	})
+	return combine(blobs...)
 }

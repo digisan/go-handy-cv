@@ -23,7 +23,7 @@ func PtInRect(pt Point, rect [2]Point) bool {
 	return (pt.X > lefttop.X && pt.X < rightbottom.X) && (pt.Y > lefttop.Y && pt.Y < rightbottom.Y)
 }
 
-func Crossed(rect1, rect2 [2]Point) bool {
+func RectCrossed(rect1, rect2 [2]Point) bool {
 	lefttop1 := rect1[0]
 	rightbottom1 := rect1[1]
 	lefttop2 := rect2[0]
@@ -43,7 +43,7 @@ func RectOverlap(rect1, rect2 [2]Point) bool {
 			compare = rect1
 		}
 
-		if Crossed(rect, compare) {
+		if RectCrossed(rect, compare) {
 			return true
 		}
 
