@@ -416,7 +416,7 @@ func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
 
 	minY1, maxY1 := getMaxMinY(be1.tag)
 	minY2, maxY2 := getMaxMinY(be2.tag)
-	
+
 	pairsarr1, pairsarr2 := []string{}, []string{}
 	ys := []int{}
 
@@ -465,10 +465,15 @@ func blobEGrp(blobs []Blob, ids ...string) (ret []Blob) {
 
 func combine(blobs ...Blob) (ret []Blob) {
 
+AGAIN:
+
+	ret = []Blob{}
 	merged := make(map[string]struct{})
 	m := make(map[string][]string)
+	linked := false
+
 	for _, be1 := range blobs {
-		linked := false
+		linked = false
 		id1 := be1.ID()
 		if _, ok := merged[id1]; ok {
 			continue
@@ -497,9 +502,13 @@ func combine(blobs ...Blob) (ret []Blob) {
 	}
 
 	for hID, tIDs := range m {
-		ids := append([]string{hID}, tIDs...)
-		toMerge := blobEGrp(blobs, ids...)
+		toMerge := blobEGrp(blobs, append([]string{hID}, tIDs...)...)
 		ret = append(ret, mergeToOneBlob(toMerge...))
+	}
+
+	if linked {
+		blobs = ret
+		goto AGAIN
 	}
 
 	return
