@@ -22,6 +22,7 @@ type Blob struct {
 	y   int
 	idx string
 	tag string
+	loc [2]Point
 }
 
 func tagsort(tag string) string {
@@ -100,7 +101,7 @@ func (b Blob) Tag() string {
 	return b.tag
 }
 
-func (b Blob) Loc() [2]Point {
+func (b *Blob) Loc() [2]Point {
 
 	top, bottom := 8192, 0
 	left, right := 8192, 0
@@ -130,10 +131,18 @@ func (b Blob) Loc() [2]Point {
 		}
 	}
 
-	return [2]Point{{left, top}, {right, bottom}}
+	b.loc = [2]Point{{left, top}, {right, bottom}}
+	return b.loc
 }
 
-func (b Blob) Area() (area int) {
+func (b *Blob) Center() Point {
+	if b.loc == [2]Point{{0, 0}, {0, 0}} {
+		b.Loc()
+	}
+	return Point{(b.loc[1].X + b.loc[0].X) / 2, (b.loc[1].Y + b.loc[0].Y) / 2}
+}
+
+func (b *Blob) Area() (area int) {
 	r := regexp.MustCompile(`\[\d+,\d+\]`)
 	ns := r.FindAllString(b.tag, -1)
 	for _, n := range ns {
