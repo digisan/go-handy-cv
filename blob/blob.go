@@ -3,6 +3,7 @@ package blob
 import (
 	"crypto/md5"
 	"fmt"
+	"image"
 	"log"
 	"regexp"
 	"sort"
@@ -13,16 +14,11 @@ import (
 	"github.com/digisan/gotk/slice/ts"
 )
 
-type Point struct {
-	X int
-	Y int
-}
-
 type Blob struct {
 	y   int
 	idx string
 	tag string
-	loc [2]Point
+	loc image.Rectangle
 }
 
 func tagsort(tag string) string {
@@ -101,7 +97,7 @@ func (b Blob) Tag() string {
 	return b.tag
 }
 
-func (b *Blob) Loc() [2]Point {
+func (b *Blob) Loc() image.Rectangle {
 
 	top, bottom := 8192, 0
 	left, right := 8192, 0
@@ -131,15 +127,18 @@ func (b *Blob) Loc() [2]Point {
 		}
 	}
 
-	b.loc = [2]Point{{left, top}, {right, bottom}}
+	b.loc = image.Rectangle{
+		Min: image.Point{left, top},
+		Max: image.Point{right, bottom},
+	}
 	return b.loc
 }
 
-func (b *Blob) Center() Point {
-	if b.loc == [2]Point{{0, 0}, {0, 0}} {
+func (b *Blob) Center() image.Point {
+	if b.loc == image.Rect(0, 0, 0, 0) {
 		b.Loc()
 	}
-	return Point{(b.loc[1].X + b.loc[0].X) / 2, (b.loc[1].Y + b.loc[0].Y) / 2}
+	return image.Point{(b.loc.Max.X + b.loc.Min.X) / 2, (b.loc.Max.Y + b.loc.Min.Y) / 2}
 }
 
 func (b *Blob) Area() (area int) {
@@ -535,7 +534,7 @@ func DetectClrBlobPos(
 	width, height, step int,
 	dataR, dataG, dataB []byte,
 	filterR, filterG, filterB func(x, y int, p byte) bool,
-	disErr int) (pos []Point) {
+	disErr int) (pos []image.Point) {
 
 	blobsR := DetectBlob(width, height, step, dataR, filterR)
 	blobsG := DetectBlob(width, height, step, dataG, filterG)

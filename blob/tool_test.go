@@ -2,6 +2,7 @@ package blob
 
 import (
 	"fmt"
+	"image"
 	"reflect"
 	"testing"
 )
@@ -50,8 +51,8 @@ func TestTagSort(t *testing.T) {
 
 func TestPtDis(t *testing.T) {
 	type args struct {
-		pt1 Point
-		pt2 Point
+		pt1 image.Point
+		pt2 image.Point
 	}
 	tests := []struct {
 		name string
@@ -62,8 +63,8 @@ func TestPtDis(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				pt1: Point{X: 0, Y: 0},
-				pt2: Point{X: -3, Y: 4},
+				pt1: image.Point{X: 0, Y: 0},
+				pt2: image.Point{X: -3, Y: 4},
 			},
 			want: 5,
 		},

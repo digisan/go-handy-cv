@@ -2,6 +2,7 @@ package blob
 
 import (
 	"fmt"
+	"image"
 	"math"
 	"sort"
 	"strings"
@@ -18,32 +19,32 @@ var (
 	sHasPrefix  = strings.HasPrefix
 )
 
-func PtDis(pt1, pt2 Point) int {
+func PtDis(pt1, pt2 image.Point) int {
 	dx := math.Abs(float64(pt1.X - pt2.X))
 	dy := math.Abs(float64(pt1.Y - pt2.Y))
 	return int(math.Sqrt(dx*dx + dy*dy))
 }
 
-func PtsAverage(pts ...Point) Point {
+func PtsAverage(pts ...image.Point) image.Point {
 	sumX, sumY := 0, 0
 	for _, pt := range pts {
 		sumX += pt.X
 		sumY += pt.Y
 	}
-	return Point{X: sumX / len(pts), Y: sumY / len(pts)}
+	return image.Point{X: sumX / len(pts), Y: sumY / len(pts)}
 }
 
-func PtInRect(pt Point, rect [2]Point) bool {
-	lefttop := rect[0]
-	rightbottom := rect[1]
+func PtInRect(pt image.Point, rect image.Rectangle) bool {
+	lefttop := rect.Min
+	rightbottom := rect.Max
 	return (pt.X > lefttop.X && pt.X < rightbottom.X) && (pt.Y > lefttop.Y && pt.Y < rightbottom.Y)
 }
 
-func RectCrossed(rect1, rect2 [2]Point) bool {
-	lefttop1 := rect1[0]
-	rightbottom1 := rect1[1]
-	lefttop2 := rect2[0]
-	rightbottom2 := rect2[1]
+func RectCrossed(rect1, rect2 image.Rectangle) bool {
+	lefttop1 := rect1.Min
+	rightbottom1 := rect1.Max
+	lefttop2 := rect2.Min
+	rightbottom2 := rect2.Max
 	if (lefttop1.X >= lefttop2.X && lefttop1.X <= rightbottom2.X) &&
 		(rightbottom1.X >= lefttop2.X && rightbottom1.X <= rightbottom2.X) &&
 		(lefttop1.Y <= lefttop2.Y && rightbottom1.Y >= rightbottom2.Y) {
@@ -52,8 +53,8 @@ func RectCrossed(rect1, rect2 [2]Point) bool {
 	return false
 }
 
-func RectOverlap(rect1, rect2 [2]Point) bool {
-	for i, rect := range [][2]Point{rect1, rect2} {
+func RectOverlap(rect1, rect2 image.Rectangle) bool {
+	for i, rect := range []image.Rectangle{rect1, rect2} {
 		compare := rect2
 		if i == 1 {
 			compare = rect1
@@ -63,11 +64,11 @@ func RectOverlap(rect1, rect2 [2]Point) bool {
 			return true
 		}
 
-		lefttop := rect[0]
-		rightbottom := rect[1]
-		leftbottom := Point{lefttop.X, rightbottom.Y}
-		righttop := Point{rightbottom.X, lefttop.Y}
-		for _, pt := range []Point{lefttop, rightbottom, leftbottom, righttop} {
+		lefttop := rect.Min
+		rightbottom := rect.Max
+		leftbottom := image.Point{lefttop.X, rightbottom.Y}
+		righttop := image.Point{rightbottom.X, lefttop.Y}
+		for _, pt := range []image.Point{lefttop, rightbottom, leftbottom, righttop} {
 			if PtInRect(pt, compare) {
 				return true
 			}

@@ -8,10 +8,11 @@ import (
 
 func main() {
 	f := func(x, y int, p byte) bool {
-		return x < 7 && y < 5 && p == 0
+		return p == 0
 	}
 	blobs := blob.DetectBlob(width, height, step, arr, f)
 	fmt.Println(blobs)
+	fmt.Println()
 
 	for _, blob := range blobs {
 		fmt.Println("loc:", blob.Loc())
