@@ -217,16 +217,16 @@ func blAdjacent(bl1, bl2 *blobline) (*blobline, bool) {
 }
 
 // blob line scan
-func scan(y int, line []byte, filter func(p byte) bool) (lob []*blobline) {
+func scan(y int, line []byte, filter func(x, y int, p byte) bool) (lob []*blobline) {
 	inBlob := false
 	bl := &blobline{y: y}
 	for i, p := range line {
-		if !inBlob && filter(p) {
+		if !inBlob && filter(i, y, p) {
 			inBlob = true
 			bl.start = i
 			bl.end = len(line)
 		}
-		if inBlob && !filter(p) {
+		if inBlob && !filter(i, y, p) {
 			inBlob = false
 			bl.end = i
 			lob = append(lob, bl)
@@ -239,7 +239,7 @@ func scan(y int, line []byte, filter func(p byte) bool) (lob []*blobline) {
 	return
 }
 
-func detectParts(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
+func detectParts(width, height, step int, data []byte, filter func(x, y int, p byte) bool) []Blob {
 
 	mBlobsLine := make(map[int][]*blobline)
 
@@ -523,10 +523,35 @@ AGAIN:
 	return
 }
 
-func DetectBlob(width, height, step int, data []byte, filter func(p byte) bool) []Blob {
+func DetectBlob(width, height, step int, data []byte, filter func(x, y int, p byte) bool) []Blob {
 	blobs := detectParts(width, height, step, data, filter)
 	sort.Slice(blobs, func(i, j int) bool {
 		return blobs[i].y < blobs[j].y
 	})
 	return combine(blobs...)
+}
+
+func DetectClrBlobPos(
+	width, height, step int,
+	dataR, dataG, dataB []byte,
+	filterR, filterG, filterB func(x, y int, p byte) bool,
+	disErr int) (pos []Point) {
+
+	blobsR := DetectBlob(width, height, step, dataR, filterR)
+	blobsG := DetectBlob(width, height, step, dataG, filterG)
+	blobsB := DetectBlob(width, height, step, dataB, filterB)
+
+	for _, bR := range blobsR {
+		cR := bR.Center()
+		for _, bG := range blobsG {
+			cG := bG.Center()
+			for _, bB := range blobsB {
+				cB := bB.Center()
+				if PtDis(cR, cG) <= disErr && PtDis(cR, cB) <= disErr && PtDis(cG, cB) <= disErr {
+					pos = append(pos, PtsAverage(cR, cG, cB))
+				}
+			}
+		}
+	}
+	return
 }

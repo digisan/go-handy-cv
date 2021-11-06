@@ -2,6 +2,7 @@ package blob
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 )
@@ -16,6 +17,21 @@ var (
 	sContains   = strings.Contains
 	sHasPrefix  = strings.HasPrefix
 )
+
+func PtDis(pt1, pt2 Point) int {
+	dx := math.Abs(float64(pt1.X - pt2.X))
+	dy := math.Abs(float64(pt1.Y - pt2.Y))
+	return int(math.Sqrt(dx*dx + dy*dy))
+}
+
+func PtsAverage(pts ...Point) Point {
+	sumX, sumY := 0, 0
+	for _, pt := range pts {
+		sumX += pt.X
+		sumY += pt.Y
+	}
+	return Point{X: sumX / len(pts), Y: sumY / len(pts)}
+}
 
 func PtInRect(pt Point, rect [2]Point) bool {
 	lefttop := rect[0]

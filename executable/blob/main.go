@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	f := func(p byte) bool {
-		return p == 0
+	f := func(x, y int, p byte) bool {
+		return x < 7 && y < 5 && p == 0
 	}
 	blobs := blob.DetectBlob(width, height, step, arr, f)
 	fmt.Println(blobs)
@@ -17,5 +17,6 @@ func main() {
 		fmt.Println("loc:", blob.Loc())
 		fmt.Println("center:", blob.Center())
 		fmt.Println("area:", blob.Area())
+		fmt.Println()
 	}
 }

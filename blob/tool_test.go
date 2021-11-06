@@ -47,3 +47,32 @@ func TestTagSort(t *testing.T) {
 8: [2,3]`
 	fmt.Println(tagsort(str))
 }
+
+func TestPtDis(t *testing.T) {
+	type args struct {
+		pt1 Point
+		pt2 Point
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				pt1: Point{X: 0, Y: 0},
+				pt2: Point{X: -3, Y: 4},
+			},
+			want: 5,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := PtDis(tt.args.pt1, tt.args.pt2); got != tt.want {
+				t.Errorf("PtDis() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
