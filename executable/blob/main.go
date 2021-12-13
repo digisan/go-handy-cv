@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/digisan/go-handy-cv/blob"
+	"github.com/digisan/tiny-gocv/blob"
 )
 
 func main() {

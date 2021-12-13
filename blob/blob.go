@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/digisan/gotk/slice/ti"
-	"github.com/digisan/gotk/slice/ts"
+	"github.com/digisan/go-generics/i64"
+	"github.com/digisan/go-generics/str"
 )
 
 type Blob struct {
@@ -24,7 +24,7 @@ type Blob struct {
 func tagsort(tag string) string {
 
 	tln := sSplit(tag, "\n")
-	tln = ts.FM(tln, func(i int, e string) bool { return sContains(e, ":") }, nil)
+	tln = str.FM(tln, func(i int, e string) bool { return sContains(e, ":") }, nil)
 	if len(tln) > 1 {
 		sort.Slice(tln, func(i, j int) bool {
 			iln, jln := tln[i], tln[j]
@@ -61,7 +61,7 @@ AGAIN:
 		p := sIndex(tln[i], ":") + 2
 		pfx := tln[i][:p]
 		pairs := sSplit(tln[i][p:], " ")
-		pairs = ts.MkSet(pairs...)
+		pairs = str.MkSet(pairs...)
 		if len(pairs) > 1 {
 			sort.Slice(pairs, func(i, j int) bool {
 				pi, pj := pairs[i], pairs[j]
@@ -365,7 +365,7 @@ func pairmerge(pair1, pair2 string) string {
 	pair12 := pair1 + " " + pair2
 	pair12 = sTrimRight(pair12, " ")
 	pairs := sSplit(pair12, " ")
-	pairs = ts.MkSet(pairs...)
+	pairs = str.MkSet(pairs...)
 	if len(pairs) >= 2 && pairs[0] != "" && pairs[1] != "" {
 		sort.Slice(pairs, func(i, j int) bool {
 			pis, pjs := sIndex(pairs[i], "["), sIndex(pairs[j], "[")
@@ -428,7 +428,7 @@ func merge2Blob(be1, be2 Blob) (merged Blob, shared bool) {
 	pairsarr1, pairsarr2 := []string{}, []string{}
 	ys := []int{}
 
-	minY, maxY := ti.Min(minY1, minY2), ti.Max(maxY1, maxY2)
+	minY, maxY := i64.Min(minY1, minY2), i64.Max(maxY1, maxY2)
 	for y := minY; y <= maxY; y++ {
 		pairs1 := getPairsByY(be1.tag, y)
 		pairsarr1 = append(pairsarr1, pairs1)
@@ -464,7 +464,7 @@ func mergeToOneBlob(blobs ...Blob) Blob {
 
 func blobEGrp(blobs []Blob, ids ...string) (ret []Blob) {
 	for _, b := range blobs {
-		if ts.In(b.ID(), ids...) {
+		if str.In(b.ID(), ids...) {
 			ret = append(ret, b)
 		}
 	}
