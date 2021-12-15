@@ -1,41 +1,12 @@
 package cvmath
 
 import (
+	"image"
 	"log"
 	"math"
 
 	"github.com/digisan/go-generics/f64"
 )
-
-func U8ToF64(vb []byte) (vf []float64) {
-	for _, b := range vb {
-		vf = append(vf, float64(b))
-	}
-	return
-}
-
-func F64ToU8(vf []float64) (vb []byte) {
-	for _, f := range vf {
-		vb = append(vb, byte(math.Round(f)))
-	}
-	return
-}
-
-func I32ToF64(vi []int) (vf []float64) {
-	for _, i := range vi {
-		vf = append(vf, float64(i))
-	}
-	return
-}
-
-func F64ToI32(vf []float64) (vi []int) {
-	for _, f := range vf {
-		vi = append(vi, int(math.Round(f)))
-	}
-	return
-}
-
-////////////////////////////////////////////////////////////////////////////
 
 func Max(data ...float64) float64 {
 	return f64.Max(data...)
@@ -105,7 +76,7 @@ func Derivative1(data ...float64) (ret []float64) {
 	return
 }
 
-func smooth9(pts []float64) (ret []float64) {
+func Smooth9(pts []float64) (ret []float64) {
 	sp9 := []float64{-21, 14, 39, 54, 59, 54, 39, 14, -21}
 	ret = make([]float64, len(pts))
 	copy(ret, pts[:4])
@@ -121,4 +92,32 @@ func smooth9(pts []float64) (ret []float64) {
 		}
 	}
 	return
+}
+
+func Dis(a, b float64) float64 {
+	return math.Abs(a - b)
+}
+
+func DisInt(a, b int) int {
+	fa, fb := float64(a), float64(b)
+	return int(Dis(fa, fb))
+}
+
+func DisByte(a, b byte) byte {
+	fa, fb := float64(a), float64(b)
+	return byte(Dis(fa, fb))
+}
+
+func DisPt(pt1, pt2 image.Point) float64 {
+	dx := float64(DisInt(pt1.X, pt2.X))
+	dy := float64(DisInt(pt1.Y, pt2.Y))
+	return math.Sqrt(dx*dx + dy*dy)
+}
+
+func DisPtX(pt1, pt2 image.Point) float64 {
+	return float64(DisInt(pt1.X, pt2.X))
+}
+
+func DisPtY(pt1, pt2 image.Point) float64 {
+	return float64(DisInt(pt1.Y, pt2.Y))
 }
