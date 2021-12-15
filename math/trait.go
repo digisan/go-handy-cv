@@ -56,7 +56,7 @@ func Histogram(data ...byte) (m map[byte]int, maxIdx byte, maxN int) {
 func fnIsPeak(data []float64, halfstep int) func(i int) bool {
 
 	var (
-		deri  = Derivative1(data...)
+		deri  = Derivative(data...)
 		E     = 0.1
 		iPeak = []int{}
 	)
@@ -110,7 +110,7 @@ func fnIsPeak(data []float64, halfstep int) func(i int) bool {
 func fnIsBottom(data []float64, halfstep int) func(i int) bool {
 
 	var (
-		deri    = Derivative1(data...)
+		deri    = Derivative(data...)
 		E       = 0.1
 		iBottom = []int{}
 	)

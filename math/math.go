@@ -4,8 +4,10 @@ import (
 	"image"
 	"log"
 	"math"
+	"sort"
 
 	"github.com/digisan/go-generics/f64"
+	"github.com/digisan/go-generics/f64i64"
 )
 
 func Max(data ...float64) float64 {
@@ -41,13 +43,33 @@ func Sum(data ...float64) (sum float64) {
 	return
 }
 
-func Average(data ...float64) float64 {
+func Mean(data ...float64) float64 {
 	return Sum(data...) / float64(len(data))
+}
+
+func Median(data ...float64) float64 {
+	sort.Float64s(data)
+	pos := len(data) / 2
+	if len(data)%2 == 0 {
+		return data[pos-1]
+	}
+	return data[pos]
+}
+
+func Mode(data ...float64) float64 {
+	m := make(map[float64]int)
+	for _, d := range data {
+		m[d]++
+	}
+	ks, _ := f64i64.Map2KVs(m, nil, func(i int, j int) bool {
+		return i > j
+	})
+	return ks[0]
 }
 
 func StdDev(data ...float64) float64 {
 	sum2 := 0.0
-	ave := Average(data...)
+	ave := Mean(data...)
 	for _, v := range data {
 		d2 := (v - ave) * (v - ave)
 		sum2 += d2
@@ -65,7 +87,7 @@ func DotProduct(v1, v2 []float64) (dp float64) {
 	return
 }
 
-func Derivative1(data ...float64) (ret []float64) {
+func Derivative(data ...float64) (ret []float64) {
 	dp := []float64{86, -142, -193, -126, 126, 193, 142, -86}
 	ret = make([]float64, len(data))
 	for i := 4; i < len(data)-4; i++ {

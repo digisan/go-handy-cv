@@ -66,3 +66,64 @@ func TestDisPt(t *testing.T) {
 		})
 	}
 }
+
+func TestMedian(t *testing.T) {
+	type args struct {
+		data []float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				data: []float64{4, 6, 2, 3, 5},
+			},
+			want: 4,
+		},
+		{
+			name: "",
+			args: args{
+				data: []float64{4, 6, 2, 3, 5, 7},
+			},
+			want: 4,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Median(tt.args.data...); got != tt.want {
+				t.Errorf("Median() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMode(t *testing.T) {
+	type args struct {
+		data []float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				data: []float64{4, 1, 1, 6, 2, 3, 3, 4, 5, 3, 3, 7, 3},
+			},
+			want: 3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Mode(tt.args.data...); got != tt.want {
+				t.Errorf("Mode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
