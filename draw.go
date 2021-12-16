@@ -3,7 +3,10 @@ package gocv
 import (
 	"image"
 	"image/draw"
+	"log"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 
 	"github.com/cnkei/gospline"
@@ -217,6 +220,9 @@ func DrawCircles(img image.Image, centres []image.Point, r int, color string, sa
 	dc.Fill()
 
 	if savePath != "" {
+		if err := os.MkdirAll(filepath.Dir(savePath), os.ModePerm); err != nil {
+			log.Fatalf("%v", err)
+		}
 		dc.SavePNG(savePath)
 	}
 
