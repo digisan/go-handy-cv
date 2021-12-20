@@ -8,6 +8,7 @@ import (
 
 	"github.com/digisan/go-generics/f64"
 	"github.com/digisan/go-generics/f64i64"
+	"github.com/digisan/go-generics/f64v4i64"
 )
 
 func Max(data ...float64) float64 {
@@ -36,6 +37,10 @@ func MaxMinAbs(data ...float64) (float64, float64) {
 	return Max(tempAbs...), Min(tempAbs...)
 }
 
+func StepSelect(step, offset int, data ...float64) []float64 {
+	return f64.FM(data, func(i int, e float64) bool { return i%step == offset }, nil)
+}
+
 func Sum(data ...float64) (sum float64) {
 	for _, v := range data {
 		sum += v
@@ -43,8 +48,27 @@ func Sum(data ...float64) (sum float64) {
 	return
 }
 
+func SumStep4(data ...float64) (sum [4]float64) {
+	for i := 0; i < len(data); i += 4 {
+		sum[0] += data[i]
+		sum[1] += data[i+1]
+		sum[2] += data[i+2]
+		sum[3] += data[i+3]
+	}
+	return
+}
+
 func Mean(data ...float64) float64 {
 	return Sum(data...) / float64(len(data))
+}
+
+func MeanStep4(data ...float64) (mean [4]float64) {
+	sums := SumStep4(data...)
+	nVec := len(data) / 4
+	for i := 0; i < 4; i++ {
+		mean[i] = sums[i] / float64(nVec)
+	}
+	return
 }
 
 func Median(data ...float64) float64 {
@@ -56,6 +80,14 @@ func Median(data ...float64) float64 {
 	return data[pos]
 }
 
+func MedianStep4(data ...float64) [4]float64 {
+	d0 := StepSelect(4, 0, data...)
+	d1 := StepSelect(4, 1, data...)
+	d2 := StepSelect(4, 2, data...)
+	d3 := StepSelect(4, 3, data...)
+	return [4]float64{Median(d0...), Median(d1...), Median(d2...), Median(d3...)}
+}
+
 func Mode(data ...float64) float64 {
 	m := make(map[float64]int)
 	for _, d := range data {
@@ -65,6 +97,26 @@ func Mode(data ...float64) float64 {
 		return i > j
 	})
 	return ks[0]
+}
+
+func ModeVec4(data ...float64) [4]float64 {
+	m := make(map[[4]float64]int)
+	for i := 0; i < len(data); i += 4 {
+		k := [4]float64{data[i], data[i+1], data[i+2], data[i+3]}
+		m[k]++
+	}
+	ks, _ := f64v4i64.Map2KVs(m, nil, func(i, j int) bool {
+		return i > j
+	})
+	return ks[0]
+}
+
+func ModeStep4(data ...float64) [4]float64 {
+	d0 := StepSelect(4, 0, data...)
+	d1 := StepSelect(4, 1, data...)
+	d2 := StepSelect(4, 2, data...)
+	d3 := StepSelect(4, 3, data...)
+	return [4]float64{Mode(d0...), Mode(d1...), Mode(d2...), Mode(d3...)}
 }
 
 func StdDev(data ...float64) float64 {
