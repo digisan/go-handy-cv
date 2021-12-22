@@ -3,22 +3,32 @@ package gocv
 import (
 	"image"
 	"math"
+
+	cm "github.com/digisan/tiny-gocv/math"
 )
 
 func GetMean(img *image.Gray) byte {
-	// return byte(cm.Mean(U8ToF64(img.Pix)...))
+	return byte(cm.Mean(U8ToF64(img.Pix)...)) // img.Stride is always harmony with Width, Tested
 
-	sum, n := 0.0, 0.0
-	rect := img.Bounds()
-	for y := 0; y < rect.Dy(); y++ {
-		pHead := img.Pix[y*img.Stride:]
-		for x := 0; x < rect.Dx(); x++ {
-			pxl := pHead[x]
-			sum += float64(pxl)
-			n++
-		}
-	}
-	return byte(math.Round(sum / n))
+	// sum, n := 0.0, 0.0
+	// rect := img.Bounds()
+	// for y := 0; y < rect.Dy(); y++ {
+	// 	pHead := img.Pix[y*img.Stride:]
+	// 	for x := 0; x < rect.Dx(); x++ {
+	// 		pxl := pHead[x]
+	// 		sum += float64(pxl)
+	// 		n++
+	// 	}
+	// }
+	// return byte(math.Round(sum / n))
+}
+
+func GetMedian(img *image.Gray) byte {
+	return byte(cm.Median(U8ToF64(img.Pix)...))
+}
+
+func GetMode(img *image.Gray) byte {
+	return byte(cm.Mode(U8ToF64(img.Pix)...))
 }
 
 func GetStripeV(img *image.Gray, x int) (stripe []byte) {
