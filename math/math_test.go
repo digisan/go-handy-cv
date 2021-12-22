@@ -1,6 +1,7 @@
 package cvmath
 
 import (
+	"fmt"
 	"image"
 	"reflect"
 	"testing"
@@ -322,6 +323,132 @@ func TestMedianStep4(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := MedianStep4(tt.args.data...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("MedianVec4() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestYaXb(t *testing.T) {
+	type args struct {
+		pt1 image.Point
+		pt2 image.Point
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantA          float64
+		wantB          float64
+		wantVertical   bool
+		wantVX         float64
+		wantHorizontal bool
+		wantHY         float64
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				pt1: image.Pt(1, 1),
+				pt2: image.Pt(0, 0),
+			},
+			wantA:          1,
+			wantB:          0,
+			wantVertical:   false,
+			wantHorizontal: false,
+		},
+		{
+			name: "",
+			args: args{
+				pt1: image.Pt(1, 1),
+				pt2: image.Pt(1, 0),
+			},
+			wantA:        1,
+			wantB:        0,
+			wantVertical: true,
+			wantVX:       1,
+		},
+		{
+			name: "",
+			args: args{
+				pt1: image.Pt(1, 1),
+				pt2: image.Pt(0, 1),
+			},
+			wantA:          0,
+			wantB:          1,
+			wantHorizontal: true,
+			wantHY:         1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotA, gotB, gotVertical, gotVX, gotHorizontal, gotHY := YaXb(tt.args.pt1, tt.args.pt2)
+			if gotA != tt.wantA {
+				t.Errorf("YaXb() gotA = %v, want %v", gotA, tt.wantA)
+			}
+			if gotB != tt.wantB {
+				t.Errorf("YaXb() gotB = %v, want %v", gotB, tt.wantB)
+			}
+			if gotVertical != tt.wantVertical {
+				t.Errorf("YaXb() gotVertical = %v, want %v", gotVertical, tt.wantVertical)
+			}
+			if gotVX != tt.wantVX {
+				t.Errorf("YaXb() gotVX = %v, want %v", gotVX, tt.wantVX)
+			}
+			if gotHorizontal != tt.wantHorizontal {
+				t.Errorf("YaXb() gotHorizontal = %v, want %v", gotHorizontal, tt.wantHorizontal)
+			}
+			if gotHY != tt.wantHY {
+				t.Errorf("YaXb() gotHY = %v, want %v", gotHY, tt.wantHY)
+			}
+		})
+	}
+}
+
+func TestInterpolate(t *testing.T) {
+	type args struct {
+		pt1  image.Point
+		pt2  image.Point
+		step float64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantPts []image.Point
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				pt1:  image.Pt(10, 0),
+				pt2:  image.Pt(100, 35),
+				step: 0.5,
+			},
+		},
+		// {
+		// 	name: "",
+		// 	args: args{
+		// 		pt1:  image.Pt(100, 0),
+		// 		pt2:  image.Pt(100, 35),
+		// 		step: 5,
+		// 	},
+		// },
+		// {
+		// 	name: "",
+		// 	args: args{
+		// 		pt1:  image.Pt(0, 100),
+		// 		pt2:  image.Pt(35, 100),
+		// 		step: 0.5,
+		// 	},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// if gotPts := InterpolateLine(tt.args.pt1, tt.args.pt2, tt.args.step); !reflect.DeepEqual(gotPts, tt.wantPts) {
+			// 	t.Errorf("InterpolateLine() = %v, want %v", gotPts, tt.wantPts)
+			// }
+
+			gotPts := InterpolateLine(tt.args.pt1, tt.args.pt2, tt.args.step)
+			for _, pt := range gotPts {
+				fmt.Println(pt)
 			}
 		})
 	}

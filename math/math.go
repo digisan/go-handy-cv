@@ -9,6 +9,7 @@ import (
 	"github.com/digisan/go-generics/f64"
 	"github.com/digisan/go-generics/f64i64"
 	"github.com/digisan/go-generics/f64v4i64"
+	"github.com/digisan/go-generics/pt"
 )
 
 func Max(data ...float64) float64 {
@@ -194,4 +195,60 @@ func DisPtX(pt1, pt2 image.Point) float64 {
 
 func DisPtY(pt1, pt2 image.Point) float64 {
 	return float64(DisInt(pt1.Y, pt2.Y))
+}
+
+func YaXb(pt1, pt2 image.Point) (a, b float64, vertical bool, vX float64, horizontal bool, hY float64) {
+	x1, y1 := float64(pt1.X), float64(pt1.Y)
+	x2, y2 := float64(pt2.X), float64(pt2.Y)
+
+	// vertical, "x = n"
+	if x1 == x2 {
+		vertical = true
+		vX = x1
+		a, b = 1, 0
+		return
+	}
+
+	a = (y1 - y2) / (x1 - x2)
+	b = y1 - a*x1
+
+	// horizontal, "y = n"
+	if a == 0 {
+		horizontal = true
+		hY = b
+		a = 0
+	}
+
+	return
+}
+
+func InterpolateLine(pt1, pt2 image.Point, step float64) (pts []image.Point) {
+
+	x1, x2 := pt1.X, pt2.X
+	y1, y2 := pt1.Y, pt2.Y
+
+	xMin := Min(float64(x1), float64(x2))
+	xMax := Max(float64(x1), float64(x2))
+	yMin := Min(float64(y1), float64(y2))
+	yMax := Max(float64(y1), float64(y2))
+
+	a, b, v, vx, h, hy := YaXb(pt1, pt2)
+
+	switch {
+	case !v && !h:
+		for x := xMin; x <= xMax; x += step {
+			y := a*x + b
+			pts = append(pts, image.Pt(int(x), int(y)))
+		}
+	case h:
+		for x := xMin; x <= xMax; x += step {
+			pts = append(pts, image.Pt(int(x), int(hy)))
+		}
+	case v:
+		for y := yMin; y <= yMax; y += step {
+			pts = append(pts, image.Pt(int(vx), int(y)))
+		}
+	}
+
+	return pt.MkSet(pts...)
 }
