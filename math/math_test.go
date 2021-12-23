@@ -453,3 +453,47 @@ func TestInterpolate(t *testing.T) {
 		})
 	}
 }
+
+func TestRandomPoint(t *testing.T) {
+	type args struct {
+		pts []image.Point
+	}
+	tests := []struct {
+		name string
+		args args
+		want image.Point
+	}{
+		// TODO: Add test cases.
+		{
+			name: "",
+			args: args{
+				pts: []image.Point{
+					{X: 2, Y: 1},
+					{X: 3, Y: 2},
+					{X: 4, Y: 3},
+					{X: 5, Y: 4},
+				},
+			},
+			want: image.Pt(200, 100),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for i := 0; i < 100; i++ {
+				got := RandomPoint(tt.args.pts...)
+				switch got {
+				case tt.args.pts[0]:
+					fmt.Println("0")
+				case tt.args.pts[1]:
+					fmt.Println("1")
+				case tt.args.pts[2]:
+					fmt.Println("2")
+				case tt.args.pts[3]:
+					fmt.Println("3")
+				}
+
+				// fmt.Println(got)
+			}
+		})
+	}
+}

@@ -4,12 +4,15 @@ import (
 	"image"
 	"log"
 	"math"
+	"math/rand"
 	"sort"
+	"time"
 
 	"github.com/digisan/go-generics/f64"
 	"github.com/digisan/go-generics/f64i64"
 	"github.com/digisan/go-generics/f64v4i64"
 	"github.com/digisan/go-generics/pt"
+	"github.com/digisan/go-generics/pti64"
 )
 
 func Max(data ...float64) float64 {
@@ -251,4 +254,58 @@ func InterpolateLine(pt1, pt2 image.Point, step float64) (pts []image.Point) {
 	}
 
 	return pt.MkSet(pts...)
+}
+
+func NearFarPoint(toPt image.Point, pts ...image.Point) (nearest, farest image.Point) {
+	disGrp := []float64{}
+	for _, pt := range pts {
+		disGrp = append(disGrp, DisPt(pt, toPt))
+	}
+	dMin := Min(disGrp...)
+	dMax := Max(disGrp...)
+	for _, pt := range pts {
+		dis := DisPt(pt, toPt)
+		if dis == dMin {
+			nearest = pt
+		}
+		if dis == dMax {
+			farest = pt
+		}
+	}
+	return
+}
+
+func PointsRect(pts ...image.Point) (left, top, right, bottom float64) {
+	xs := I64ToF64(pti64.FM(pts, nil, func(i int, e image.Point) int { return e.X }))
+	ys := I64ToF64(pti64.FM(pts, nil, func(i int, e image.Point) int { return e.Y }))
+	xMin, xMax := Min(xs...), Max(xs...)
+	yMin, yMax := Min(ys...), Max(ys...)
+	return xMin, yMin, xMax, yMax
+}
+
+func RandomPoint(pts ...image.Point) image.Point {
+
+	xMin, yMin, xMax, yMax := PointsRect(pts...)
+
+	seed := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(seed).Float64()
+
+	x := r*(xMax-xMin+0.5) + xMin
+	y := r*(yMax-yMin+0.5) + yMin
+	rPt := image.Pt(int(x), int(y))
+
+	near, _ := NearFarPoint(rPt, pts...)
+	return near
+}
+
+func CentrePoint(pts ...image.Point) image.Point {
+
+	xMin, yMin, xMax, yMax := PointsRect(pts...)
+
+	x := (xMax + xMin) / 2
+	y := (yMax + yMin) / 2
+	cPt := image.Pt(int(x), int(y))
+
+	near, _ := NearFarPoint(cPt, pts...)
+	return near
 }

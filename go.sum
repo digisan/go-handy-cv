@@ -1,7 +1,7 @@
 github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331 h1:LaKIRdLDg4mn0OkEtcr3unP0M8uQ1oyEw/05SbX/O48=
 github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331/go.mod h1:DXXGDL64/wxXgBSgmGMEL0vYC0tdvpgNhkJrvavhqDM=
-github.com/digisan/go-generics v0.0.6 h1:MGgRx2qo8/w14cj55rJE+c3avM8IslvED82mnnmwAVc=
-github.com/digisan/go-generics v0.0.6/go.mod h1:LJQsUaXxp4nmNhl4Hm6Plk71L88LJCmzN0PrOu0xXjE=
+github.com/digisan/go-generics v0.0.7 h1:Fkl6lrBBD9TENdQqzI0cRbnQjobLiJ6XoFmKW8N4ceo=
+github.com/digisan/go-generics v0.0.7/go.mod h1:LJQsUaXxp4nmNhl4Hm6Plk71L88LJCmzN0PrOu0xXjE=
 github.com/digisan/gotk v0.0.45 h1:oe6KTCmHVIS+kgoE9jFIm8h+dq+NGag93hw3vVfmBq0=
 github.com/digisan/gotk v0.0.45/go.mod h1:ZzfNRR+idHBsCXGIZet1rKYZeN85HOVtJ2MiMXL8sq0=
 github.com/fogleman/gg v1.3.0 h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=
