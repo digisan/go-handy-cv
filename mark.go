@@ -50,7 +50,7 @@ func ColorAreaToJSON(markedImg, outJSON, clr string) {
 	os.WriteFile(outJSON, data, os.ModePerm)
 }
 
-func LoadAreaFromJSON(areaJSON string) map[image.Point]struct{} {
+func loadAreaFromJSON(areaJSON string) map[image.Point]struct{} {
 
 	// load
 	data, err := os.ReadFile(areaJSON)
@@ -77,16 +77,19 @@ func LoadAreaFromJSON(areaJSON string) map[image.Point]struct{} {
 	return mPt
 }
 
+func LoadAreaFromJSON(areaJSON string, offsetX, offsetY int) (pts []image.Point) {
+	for pt := range loadAreaFromJSON(areaJSON) {
+		pts = append(pts, image.Pt(pt.X+offsetX, pt.Y+offsetY))
+	}
+	return
+}
+
 func PaintArea(imgFile, outImgFile, color string, pts []image.Point) {
 	DrawCircles(LoadImage(imgFile), pts, 1, color, outImgFile)
 }
 
 func PaintAreaFromJSON(imgFile, areaJSON string, offsetX, offsetY int, outImgFile, color string) {
 	// load & re-mark
-	mPt := LoadAreaFromJSON(areaJSON)
-	pts := []image.Point{}
-	for pt := range mPt {
-		pts = append(pts, image.Pt(pt.X+offsetX, pt.Y+offsetY))
-	}
+	pts := LoadAreaFromJSON(areaJSON, offsetX, offsetY)
 	PaintArea(imgFile, outImgFile, color, pts)
 }

@@ -309,3 +309,28 @@ func CentrePoint(pts ...image.Point) image.Point {
 	near, _ := NearFarPoint(cPt, pts...)
 	return near
 }
+
+func SplitPtsXY(pts []image.Point, xy string, n int) [][]image.Point {
+
+	xMin, yMin, xMax, yMax := PointsRect(pts...)
+	areas := make([][]image.Point, n)
+
+	switch xy {
+	case "X", "x":
+		span := (xMax - xMin) / float64(n)
+		for _, pt := range pts {
+			i := int(math.Round((float64(pt.X) - xMin) / span))
+			areas[i] = append(areas[i], pt)
+		}
+	case "Y", "y":
+		span := (yMax - yMin) / float64(n)
+		for _, pt := range pts {
+			i := int(math.Round((float64(pt.Y) - yMin) / span))
+			areas[i] = append(areas[i], pt)
+		}
+	default:
+		log.Fatalln("[xy] can only set as 'X' or 'Y'")
+	}
+
+	return areas
+}
