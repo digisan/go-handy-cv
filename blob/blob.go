@@ -24,7 +24,7 @@ type Blob struct {
 func tagsort(tag string) string {
 
 	tln := sSplit(tag, "\n")
-	tln = str.FM(tln, func(i int, e string) bool { return sContains(e, ":") }, nil)
+	str.Filter(&tln, func(i int, e string) bool { return sContains(e, ":") })
 	if len(tln) > 1 {
 		sort.Slice(tln, func(i, j int) bool {
 			iln, jln := tln[i], tln[j]

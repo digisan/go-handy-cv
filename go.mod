@@ -4,8 +4,8 @@ go 1.17
 
 require (
 	github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331
-	github.com/digisan/go-generics v0.0.7
-	github.com/digisan/gotk v0.0.45
+	github.com/digisan/go-generics v0.0.8
+	github.com/digisan/gotk v0.0.46
 	github.com/fogleman/gg v1.3.0
 )
 

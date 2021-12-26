@@ -29,5 +29,6 @@ func RoundPts(centre image.Point, r int, d float64) (pts []image.Point) {
 		pts = append(pts, pts2...)
 	}
 
-	return pt.FM(pt.MkSet(pts...), func(i int, e image.Point) bool { return e.X > 0 && e.Y > 0 }, nil)
+	pts = pt.MkSet(pts...)
+	return pt.Filter(&pts, func(i int, e image.Point) bool { return e.X > 0 && e.Y > 0 })
 }
