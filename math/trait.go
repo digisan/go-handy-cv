@@ -8,28 +8,28 @@ import (
 	"github.com/digisan/go-generics/u8i64"
 )
 
-func U8ToF64(vb []byte) (vf []float64) {
+func U8ToF64(vb ...byte) (vf []float64) {
 	for _, b := range vb {
 		vf = append(vf, float64(b))
 	}
 	return
 }
 
-func F64ToU8(vf []float64) (vb []byte) {
+func F64ToU8(vf ...float64) (vb []byte) {
 	for _, f := range vf {
 		vb = append(vb, byte(math.Round(f)))
 	}
 	return
 }
 
-func I64ToF64(vi []int) (vf []float64) {
+func I64ToF64(vi ...int) (vf []float64) {
 	for _, i := range vi {
 		vf = append(vf, float64(i))
 	}
 	return
 }
 
-func F64ToI64(vf []float64) (vi []int) {
+func F64ToI64(vf ...float64) (vi []int) {
 	for _, f := range vf {
 		vi = append(vi, int(math.Round(f)))
 	}
@@ -165,7 +165,7 @@ func Peaks(data map[byte]int, halfstep, nSmooth, nPeak int) map[byte]int {
 
 	m := make(map[byte]int)
 	ks, vs := u8i64.Map2KVs(data, func(i, j byte) bool { return i < j }, nil)
-	vsTemp := I64ToF64(vs)
+	vsTemp := I64ToF64(vs...)
 	for i := 0; i < nSmooth; i++ {
 		vsTemp = Smooth9(vsTemp)
 	}
@@ -203,7 +203,7 @@ func Bottoms(data map[byte]int, halfstep, nSmooth, nBottom int) map[byte]int {
 
 	m := make(map[byte]int)
 	ks, vs := u8i64.Map2KVs(data, func(i, j byte) bool { return i < j }, nil)
-	vsTemp := I64ToF64(vs)
+	vsTemp := I64ToF64(vs...)
 	for i := 0; i < nSmooth; i++ {
 		vsTemp = Smooth9(vsTemp)
 	}

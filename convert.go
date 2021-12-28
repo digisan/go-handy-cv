@@ -5,28 +5,28 @@ import (
 	"math"
 )
 
-func U8ToF64(vb []byte) (vf []float64) {
+func U8ToF64(vb ...byte) (vf []float64) {
 	for _, b := range vb {
 		vf = append(vf, float64(b))
 	}
 	return
 }
 
-func F64ToU8(vf []float64) (vb []byte) {
+func F64ToU8(vf ...float64) (vb []byte) {
 	for _, f := range vf {
 		vb = append(vb, byte(math.Round(f)))
 	}
 	return
 }
 
-func I64ToF64(vi []int) (vf []float64) {
+func I64ToF64(vi ...int) (vf []float64) {
 	for _, i := range vi {
 		vf = append(vf, float64(i))
 	}
 	return
 }
 
-func F64ToI64(vf []float64) (vi []int) {
+func F64ToI64(vf ...float64) (vi []int) {
 	for _, f := range vf {
 		vi = append(vi, int(math.Round(f)))
 	}

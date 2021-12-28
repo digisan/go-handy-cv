@@ -8,7 +8,7 @@ import (
 )
 
 func GetMean(img *image.Gray) byte {
-	return byte(cm.Mean(U8ToF64(img.Pix)...)) // img.Stride is always harmony with Width, Tested
+	return byte(cm.Mean(U8ToF64(img.Pix...)...)) // img.Stride is always harmony with Width, Tested
 
 	// sum, n := 0.0, 0.0
 	// rect := img.Bounds()
@@ -24,11 +24,11 @@ func GetMean(img *image.Gray) byte {
 }
 
 func GetMedian(img *image.Gray) byte {
-	return byte(cm.Median(U8ToF64(img.Pix)...))
+	return byte(cm.Median(U8ToF64(img.Pix...)...))
 }
 
 func GetMode(img *image.Gray) byte {
-	return byte(cm.Mode(U8ToF64(img.Pix)...))
+	return byte(cm.Mode(U8ToF64(img.Pix...)...))
 }
 
 func GetStripeV(img *image.Gray, x int) (stripe []byte) {

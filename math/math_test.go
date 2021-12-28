@@ -446,7 +446,7 @@ func TestInterpolate(t *testing.T) {
 			// 	t.Errorf("InterpolateLine() = %v, want %v", gotPts, tt.wantPts)
 			// }
 
-			gotPts := InterpolateLine(tt.args.pt1, tt.args.pt2, tt.args.step)
+			gotPts := interpolate(tt.args.pt1, tt.args.pt2, tt.args.step)
 			for _, pt := range gotPts {
 				fmt.Println(pt)
 			}

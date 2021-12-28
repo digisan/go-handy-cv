@@ -68,7 +68,7 @@ func DrawHisto(mHisto, mPeak, mBottom map[byte]int) (hImg *image.Gray) {
 		mY[k] = int(float64(v) / r)
 	}
 	ks, vs := u8i64.Map2KVs(mY, func(i, j byte) bool { return i < j }, nil)
-	vs = F64ToI64(cm.Smooth9(I64ToF64(vs))) // remove noise
+	vs = F64ToI64(cm.Smooth9(I64ToF64(vs...))...) // remove noise
 
 	paint := image.NewGray(image.Rect(0, 0, 1, 256))
 	for i := 0; i < len(paint.Pix); i++ {
