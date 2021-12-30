@@ -29,3 +29,34 @@ func TestSegInterpolate(t *testing.T) {
 		fmt.Println(pt, seg.Has(pt))
 	}
 }
+
+func TestSegments_Len(t *testing.T) {
+
+	s, _ := NewSegments(image.Pt(0, 0), image.Pt(100, 100), image.Pt(100, 0))
+
+	type fields struct {
+		segs []Segment
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		wantLength float64
+	}{
+		// TODO: Add test cases.
+		{
+			name:       "",
+			fields:     fields(s),
+			wantLength: 241.4213562373095,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			segs := &Segments{
+				segs: tt.fields.segs,
+			}
+			if gotLength := segs.Len(); gotLength != tt.wantLength {
+				t.Errorf("Segments.Len() = %v, want %v", gotLength, tt.wantLength)
+			}
+		})
+	}
+}

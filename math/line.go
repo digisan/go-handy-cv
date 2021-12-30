@@ -25,6 +25,10 @@ func (seg *Segment) String() string {
 	return fmt.Sprint(seg.endPt1, seg.endPt2)
 }
 
+func (seg *Segment) Reverse() Segment {
+	return NewSegment(seg.endPt2, seg.endPt1)
+}
+
 func (seg *Segment) EndPtX() (x1, x2 int) {
 	return seg.endPt1.X, seg.endPt2.X
 }
@@ -38,6 +42,10 @@ func (seg *Segment) Has(pt image.Point) bool {
 	d2 := DisPt(seg.endPt2, pt)
 	d := DisPt(seg.endPt1, seg.endPt2)
 	return d1+d2 < d+ErrChkOnSeg
+}
+
+func (seg *Segment) Len() float64 {
+	return DisPt(seg.endPt1, seg.endPt2)
 }
 
 /////////////////////////////////////////////////////////////////
@@ -67,7 +75,7 @@ func YaXb(pt1, pt2 image.Point) (a, b float64, vertical bool, vX float64, horizo
 	return
 }
 
-func Intersection(s1, s2 Segment) (pt *image.Point, inter, coincide bool) {
+func Intersection(s1, s2 Segment) (pt *image.Point, isInter, isCoincide bool) {
 
 	a1, b1, v1, vX1, h1, hY1 := YaXb(s1.endPt1, s1.endPt2)
 	a2, b2, v2, vX2, h2, hY2 := YaXb(s2.endPt1, s2.endPt2)
@@ -132,4 +140,60 @@ func interpolate(pt1, pt2 image.Point, step float64) (pts []image.Point) {
 	}
 
 	return pt.MkSet(pts...)
+}
+
+type Segments struct {
+	segs []Segment
+}
+
+func NewSegments(pts ...image.Point) (segs Segments, e error) {
+	if len(pts) < 2 {
+		e = fmt.Errorf("points count must >= 2")
+		return segs, e
+	}
+	for i := 0; i < len(pts)-1; i++ {
+		segs.segs = append(segs.segs, NewSegment(pts[i], pts[i+1]))
+	}
+	return
+}
+
+func SetSegments(segs ...Segment) Segments {
+	return Segments{segs: segs}
+}
+
+func (segs *Segments) HasPt(pt image.Point) bool {
+	for _, seg := range segs.segs {
+		if seg.Has(pt) {
+			return true
+		}
+	}
+	return false
+}
+
+func (segs *Segments) HasSeg(seg Segment) bool {
+	for _, s := range segs.segs {
+		if s == seg || s.Reverse() == seg {
+			return true
+		}
+	}
+	return false
+}
+
+func (segs *Segments) Len() (length float64) {
+	for _, s := range segs.segs {
+		length += s.Len()
+	}
+	return
+}
+
+func IntersectionSegs(segs1, segs2 Segments) (pts []*image.Point, isInter, isCoincide []bool) {
+	for _, s1 := range segs1.segs {
+		for _, s2 := range segs2.segs {
+			pt, inter, coincide := Intersection(s1, s2)
+			pts = append(pts, pt)
+			isInter = append(isInter, inter)
+			isCoincide = append(isCoincide, coincide)
+		}
+	}
+	return
 }
